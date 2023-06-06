@@ -1,4 +1,7 @@
 package com.serethewind.Arkticles.repository;
 
-public class PostsRepository {
+import com.serethewind.Arkticles.entity.PostsEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PostsRepository extends JpaRepository<PostsEntity, Long> {
 }
