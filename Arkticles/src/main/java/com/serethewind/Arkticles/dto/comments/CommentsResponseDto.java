@@ -1,16 +1,14 @@
-package com.serethewind.Arkticles.dto;
+package com.serethewind.Arkticles.dto.comments;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostsResponseDto {
-    private Long id;
-    private String title;
+@Builder
+public class CommentsResponseDto {
     private String content;
 }

@@ -1,10 +1,10 @@
-package com.serethewind.Arkticles.service.serviceImpl;
+package com.serethewind.Arkticles.service.posts.serviceImpl;
 
-import com.serethewind.Arkticles.dto.PostsCreationDto;
-import com.serethewind.Arkticles.dto.PostsResponseDto;
+import com.serethewind.Arkticles.dto.posts.PostsCreationDto;
+import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
 import com.serethewind.Arkticles.entity.PostsEntity;
 import com.serethewind.Arkticles.repository.PostsRepository;
-import com.serethewind.Arkticles.service.PostsServiceInterface;
+import com.serethewind.Arkticles.service.posts.PostsServiceInterface;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
