@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class PostsCreationDto {
     private String title;
     private String content;
+    private Long userAuthorId;
 }

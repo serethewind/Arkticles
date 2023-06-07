@@ -19,10 +19,12 @@ public class CommentsEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String content;
+
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "posts_id")
     private PostsEntity posts;
+
     @CreationTimestamp
     private LocalDateTime creationDate;
     @UpdateTimestamp

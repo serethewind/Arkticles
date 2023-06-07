@@ -6,6 +6,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,6 +35,8 @@ public class UsersEntity {
     private String email;
     @Column(nullable = false)
     private String password;
+    @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
+    private List<PostsEntity> posts;
     @CreationTimestamp
     private LocalDateTime dateRegistered;
 }
