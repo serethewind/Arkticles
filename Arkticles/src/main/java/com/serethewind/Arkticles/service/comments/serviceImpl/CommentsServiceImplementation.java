@@ -47,13 +47,14 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
     @Override
     public CommentsResponseDto updateComment(Long id, CommentsRequestDto commentsRequestDto) {
-        if (!commentsRepository.existsById(id)) {
-            return CommentsResponseDto.builder().content(null).build();
+        if(!postsRepository.existsById(commentsRequestDto.getPostId()) || !commentsRepository.existsById(id)){
+            return CommentsResponseDto.builder().content(null).posts(null).build();
         }
 
-
+        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        modelMapper.map(commentsRequestDto, entity);
+        entity.setContent(commentsRequestDto.getContent());
+        entity.setPosts(entity.getPosts());
         commentsRepository.save(entity);
         return modelMapper.map(entity, CommentsResponseDto.class);
     }
