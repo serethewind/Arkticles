@@ -7,7 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,6 +31,9 @@ public class PostsEntity {
     @Size(min = 1)
     private String content;
     //    private String author;
+    //  private Comment comments;
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CommentsEntity> comments = new ArrayList<>();
     @CreationTimestamp
     private LocalDateTime creationDate;
     @UpdateTimestamp
