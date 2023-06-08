@@ -37,6 +37,8 @@ public class UsersEntity {
     private String password;
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<PostsEntity> posts;
+    @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
+    private List<CommentsEntity> comments;
     @CreationTimestamp
     private LocalDateTime dateRegistered;
 }

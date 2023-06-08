@@ -25,6 +25,11 @@ public class CommentsEntity {
     @JoinColumn(name = "posts_id")
     private PostsEntity posts;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_author_id")
+    private UsersEntity userAuthor;
+
     @CreationTimestamp
     private LocalDateTime creationDate;
     @UpdateTimestamp
