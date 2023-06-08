@@ -26,7 +26,7 @@ public class CommentsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable("id") Long id){
-        return ResponseEntity.ok(commentsService.deleteComment(id));
+    public ResponseEntity<String> deleteComment(@PathVariable("id") Long id, @RequestBody CommentsRequestDto commentsRequestDto){
+        return ResponseEntity.ok(commentsService.deleteComment(id, commentsRequestDto));
     }
 }

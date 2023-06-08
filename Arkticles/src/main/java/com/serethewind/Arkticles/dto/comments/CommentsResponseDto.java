@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class CommentsResponseDto {
+    private String username;
     private String content;
     private PostsEntity posts;
+
 }

@@ -8,5 +8,5 @@ public interface CommentsServiceInterface {
 
     CommentsResponseDto updateComment(Long id, CommentsRequestDto commentsRequestDto);
 
-    String deleteComment(Long id);
+    String deleteComment(Long id, CommentsRequestDto commentsRequestDto);
 }

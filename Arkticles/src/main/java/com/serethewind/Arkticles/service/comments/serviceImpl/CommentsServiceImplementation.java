@@ -6,6 +6,7 @@ import com.serethewind.Arkticles.entity.CommentsEntity;
 import com.serethewind.Arkticles.entity.PostsEntity;
 import com.serethewind.Arkticles.repository.CommentsRepository;
 import com.serethewind.Arkticles.repository.PostsRepository;
+import com.serethewind.Arkticles.repository.UserRepository;
 import com.serethewind.Arkticles.service.comments.CommentsServiceInterface;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,6 +24,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
     private CommentsRepository commentsRepository;
     private PostsRepository postsRepository;
+    private UserRepository userRepository;
     private ModelMapper modelMapper;
 
     @Override
@@ -33,26 +35,51 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
                     .content(null)
                     .posts(null)
                     .build();
+            //replace with proper exception handling
         }
 
-//        CommentsEntity createdEntity = modelMapper.map(commentsRequestDto, CommentsEntity.class);
+        if (commentsRequestDto.getUserAuthorId() != null && !userRepository.existsById(commentsRequestDto.getUserAuthorId())) {
+            return CommentsResponseDto.builder().username(null).content(null).posts(null).build();
+        }
+
+        //        CommentsEntity createdEntity = modelMapper.map(commentsRequestDto, CommentsEntity.class);
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         CommentsEntity createdEntity = CommentsEntity.builder()
                 .content(commentsRequestDto.getContent())
                 .posts(posts)
                 .build();
+
+        if (commentsRequestDto.getUserAuthorId() == null) {
+            createdEntity.setUserAuthor(null);
+        } else {
+            createdEntity.setUserAuthor(userRepository.findById(commentsRequestDto.getUserAuthorId()).orElseThrow((() -> new ResponseStatusException(HttpStatus.NOT_FOUND))));
+        }
         commentsRepository.save(createdEntity);
         return modelMapper.map(createdEntity, CommentsResponseDto.class);
     }
 
     @Override
     public CommentsResponseDto updateComment(Long id, CommentsRequestDto commentsRequestDto) {
-        if(!postsRepository.existsById(commentsRequestDto.getPostId()) || !commentsRepository.existsById(id)){
-            return CommentsResponseDto.builder().content(null).posts(null).build();
+        //neither post nor comment exist
+        if (!postsRepository.existsById(commentsRequestDto.getPostId()) || !commentsRepository.existsById(id)) {
+            return CommentsResponseDto.builder()
+                    .username(null)
+                    .content(null)
+                    .posts(null).build();
         }
 
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
         CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        //user making the comment is not null. so user should be registered but the user's details doesn't match the person who created the entity in the first place.
+        if (commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())) {
+            return CommentsResponseDto.builder()
+                    .username(null)
+                    .content(null)
+                    .posts(null).build();
+        }
+
         entity.setContent(commentsRequestDto.getContent());
         entity.setPosts(entity.getPosts());
         commentsRepository.save(entity);
@@ -60,13 +87,29 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
     }
 
     @Override
-    public String deleteComment(Long id) {
+    public String deleteComment(Long id, CommentsRequestDto commentsRequestDto) {
+
+        //user who owns the post can delete comment.
+        //if the person who made the comment is registered, he can delete the comment
         if (!commentsRepository.existsById(id)) {
             return "Delete operation not successful. Comment does not exist";
         }
 
         CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        commentsRepository.delete(entity);
-        return "Delete operation successful";
+        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        //user is not null. so there is an id, but the id doesn't match the person who created the post in the first instance.
+        if(commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())){
+            return "Only user who made post can delete. Delete not successful";
+        }
+
+        //if the creator of the post or the creator of the comment
+        if(userRepository.existsById(entity.getPosts().getUserAuthor().getId()) || userRepository.existsById(entity.getUserAuthor().getId())){
+            commentsRepository.delete(entity);
+            return "Delete operation successful";
+
+        }
+
+        return "Only registered user who made post can delete. Delete not successful";
     }
 }
