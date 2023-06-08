@@ -3,7 +3,9 @@ package com.serethewind.Arkticles.service.posts.serviceImpl;
 import com.serethewind.Arkticles.dto.posts.PostsCreationDto;
 import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
 import com.serethewind.Arkticles.entity.PostsEntity;
+import com.serethewind.Arkticles.entity.UsersEntity;
 import com.serethewind.Arkticles.repository.PostsRepository;
+import com.serethewind.Arkticles.repository.UserRepository;
 import com.serethewind.Arkticles.service.posts.PostsServiceInterface;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostsServiceImplementation implements PostsServiceInterface {
     private ModelMapper modelMapper;
+    private UserRepository userRepository;
 
     private PostsRepository postsRepository;
 
@@ -35,24 +38,48 @@ public class PostsServiceImplementation implements PostsServiceInterface {
 
     @Override
     public PostsResponseDto createNewPost(PostsCreationDto postsCreationDto) {
-        PostsEntity postCreated = modelMapper.map(postsCreationDto, PostsEntity.class);
+        if (!userRepository.existsById(postsCreationDto.getUserAuthorId())){
+            return PostsResponseDto.builder()
+                    .title(null)
+                    .content(null)
+                    .userAuthorUsername(null)
+                    .comments(null)
+                    .build();
+        }
+
+        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+//        PostsEntity postCreated = modelMapper.map(postsCreationDto, PostsEntity.class);
+
+        PostsEntity postCreated = PostsEntity.builder()
+                .title(postsCreationDto.getTitle())
+                .content(postsCreationDto.getContent())
+                .userAuthor(user)
+                .build();
         postsRepository.save(postCreated);
-        return modelMapper.map(postCreated, PostsResponseDto.class);
+        PostsResponseDto postsResponseDto = modelMapper.map(postCreated, PostsResponseDto.class);
+        postsResponseDto.setUserAuthorUsername(user.getUsername());
+        return postsResponseDto;
     }
 
     @Override
     public PostsResponseDto updatePostById(Long id, PostsCreationDto postsCreationDto) {
-        if (!postsRepository.existsById(id)){
+        if (!userRepository.existsById(postsCreationDto.getUserAuthorId()) || !postsRepository.existsById(id)){
             return PostsResponseDto.builder()
                     .title(null)
                     .content(null)
                     .build();
         }
 
+
+        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         PostsEntity foundPost = postsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        modelMapper.map(postsCreationDto, foundPost);
+        foundPost.setTitle(postsCreationDto.getTitle());
+        foundPost.setContent(postsCreationDto.getContent());
+        foundPost.setUserAuthor(foundPost.getUserAuthor());
         postsRepository.save(foundPost);
-        return modelMapper.map(foundPost, PostsResponseDto.class);
+        PostsResponseDto postsResponseDto = modelMapper.map(foundPost, PostsResponseDto.class);
+        postsResponseDto.setUserAuthorUsername(user.getUsername());
+        return postsResponseDto;
     }
 
     @Override
