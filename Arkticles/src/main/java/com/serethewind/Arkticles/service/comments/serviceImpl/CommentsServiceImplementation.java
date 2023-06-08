@@ -33,13 +33,13 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
         if (!postsRepository.existsById(commentsRequestDto.getPostId())) {
             return CommentsResponseDto.builder()
                     .content(null)
-                    .posts(null)
+                    .postTitle(null)
                     .build();
             //replace with proper exception handling
         }
 
         if (commentsRequestDto.getUserAuthorId() != null && !userRepository.existsById(commentsRequestDto.getUserAuthorId())) {
-            return CommentsResponseDto.builder().username(null).content(null).posts(null).build();
+            return CommentsResponseDto.builder().username(null).content(null).postTitle(null).build();
         }
 
         //        CommentsEntity createdEntity = modelMapper.map(commentsRequestDto, CommentsEntity.class);
@@ -55,7 +55,18 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
             createdEntity.setUserAuthor(userRepository.findById(commentsRequestDto.getUserAuthorId()).orElseThrow((() -> new ResponseStatusException(HttpStatus.NOT_FOUND))));
         }
         commentsRepository.save(createdEntity);
-        return modelMapper.map(createdEntity, CommentsResponseDto.class);
+
+        CommentsResponseDto commentsResponseDto = new CommentsResponseDto();
+
+        if (createdEntity.getUserAuthor() == null){
+            commentsResponseDto.setUsername("Anonymous User");
+        } else {
+            commentsResponseDto.setUsername(createdEntity.getUserAuthor().getUsername());
+        }
+
+        commentsResponseDto.setContent(createdEntity.getContent());
+        commentsResponseDto.setPostTitle(posts.getTitle());
+        return commentsResponseDto;
     }
 
     @Override
@@ -65,7 +76,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
             return CommentsResponseDto.builder()
                     .username(null)
                     .content(null)
-                    .posts(null).build();
+                    .postTitle(null).build();
         }
 
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -77,13 +88,24 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
             return CommentsResponseDto.builder()
                     .username(null)
                     .content(null)
-                    .posts(null).build();
+                    .postTitle(null).build();
+        }
+
+        if(commentsRequestDto.getUserAuthorId() == null && entity.getUserAuthor().getId() != null){
+            return CommentsResponseDto.builder()
+                    .username(null)
+                    .content(null)
+                    .postTitle(null).build();
         }
 
         entity.setContent(commentsRequestDto.getContent());
         entity.setPosts(entity.getPosts());
         commentsRepository.save(entity);
-        return modelMapper.map(entity, CommentsResponseDto.class);
+        return CommentsResponseDto.builder()
+                .username(entity.getUserAuthor().getUsername())
+                .content(entity.getContent())
+                .postTitle(posts.getTitle())
+                .build();
     }
 
     @Override
@@ -98,7 +120,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
         CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        //user is not null. so there is an id, but the id doesn't match the person who created the post in the first instance.
+        //user is not null. so there is an id, but the id doesn't match the person who created the comment in the first instance.
         if(commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())){
             return "Only user who made post can delete. Delete not successful";
         }

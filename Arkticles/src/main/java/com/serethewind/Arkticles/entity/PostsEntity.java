@@ -1,6 +1,8 @@
 package com.serethewind.Arkticles.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -32,12 +34,15 @@ public class PostsEntity {
     @Size(min = 1)
     private String content;
     //    private String author;
-    @JsonIgnore
+
+//    @JsonBackReference
+//    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UsersEntity userAuthor;
 
     //  private Comment comments;
+//    @JsonManagedReference
     @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommentsEntity> comments = new ArrayList<>();
 

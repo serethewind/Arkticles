@@ -1,5 +1,8 @@
 package com.serethewind.Arkticles.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -15,6 +18,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity(name = "_users")
+//@JsonIdentityInfo(
+//        generator = ObjectIdGenerators.PropertyGenerator.class,
+//        property = "id")
 public class UsersEntity {
 
     /**
@@ -35,10 +41,15 @@ public class UsersEntity {
     private String email;
     @Column(nullable = false)
     private String password;
+
+//    @JsonManagedReference
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<PostsEntity> posts;
+
+
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<CommentsEntity> comments;
+
     @CreationTimestamp
     private LocalDateTime dateRegistered;
 }
