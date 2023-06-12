@@ -152,7 +152,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
            List<CommentResponseData> commentResponseDataList = commentsEntityList.stream().map(commentsEntity -> CommentResponseData.builder()
                     .username((commentsEntity.getUserAuthor() == null) ? "Anonymous" : commentsEntity.getUserAuthor().getUsername())
                     .content(commentsEntity.getContent())
-                    .timePosted(Duration.between(commentsEntity.getCreationDate(), LocalDateTime.now()).toMinutes())
+                    .timePosted(Duration.between(commentsEntity.getCreationDate(), LocalDateTime.now()).toHours() + " hours ago")
                     .build()
                     ).toList();
 

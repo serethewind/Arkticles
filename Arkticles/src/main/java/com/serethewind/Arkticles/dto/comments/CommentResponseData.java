@@ -13,5 +13,5 @@ import java.time.LocalDateTime;
 public class CommentResponseData {
     private String username;
     private String content;
-    private Long timePosted;
+    private String timePosted;
 }
