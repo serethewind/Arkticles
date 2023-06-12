@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.dto.posts;
 
+import com.serethewind.Arkticles.dto.comments.CommentResponseData;
 import com.serethewind.Arkticles.entity.CommentsEntity;
 import com.serethewind.Arkticles.entity.UsersEntity;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,5 @@ public class PostsResponseDto {
     private String title;
     private String content;
     private String userAuthorUsername;
-    private List<CommentsEntity> comments;
+    private List<CommentResponseData> commentResponseData;
 }

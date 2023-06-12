@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.service.comments.serviceImpl;
 
+import com.serethewind.Arkticles.dto.comments.CommentResponseData;
 import com.serethewind.Arkticles.dto.comments.CommentsRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsResponseDto;
 import com.serethewind.Arkticles.entity.CommentsEntity;
@@ -15,7 +16,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -58,7 +63,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
         CommentsResponseDto commentsResponseDto = new CommentsResponseDto();
 
-        if (createdEntity.getUserAuthor() == null){
+        if (createdEntity.getUserAuthor() == null) {
             commentsResponseDto.setUsername("Anonymous User");
         } else {
             commentsResponseDto.setUsername(createdEntity.getUserAuthor().getUsername());
@@ -91,7 +96,7 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
                     .postTitle(null).build();
         }
 
-        if(commentsRequestDto.getUserAuthorId() == null && entity.getUserAuthor().getId() != null){
+        if (commentsRequestDto.getUserAuthorId() == null && entity.getUserAuthor().getId() != null) {
             return CommentsResponseDto.builder()
                     .username(null)
                     .content(null)
@@ -121,17 +126,40 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         //user is not null. so there is an id, but the id doesn't match the person who created the comment in the first instance.
-        if(commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())){
+        if (commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())) {
             return "Only user who made post can delete. Delete not successful";
         }
 
         //if the creator of the post or the creator of the comment
-        if(userRepository.existsById(entity.getPosts().getUserAuthor().getId()) || userRepository.existsById(entity.getUserAuthor().getId())){
+        if (userRepository.existsById(entity.getPosts().getUserAuthor().getId()) || userRepository.existsById(entity.getUserAuthor().getId())) {
             commentsRepository.delete(entity);
             return "Delete operation successful";
 
         }
 
         return "Only registered user who made post can delete. Delete not successful";
+    }
+
+    @Override
+    public List<CommentResponseData> getCommentByPost(Long id) {
+
+        if (commentsRepository.isCommentByPost(id) == null) {
+            return null;
+        } else {
+            List<CommentsEntity> commentsEntityList = commentsRepository.findCommentByPostID(id);
+
+
+           List<CommentResponseData> commentResponseDataList = commentsEntityList.stream().map(commentsEntity -> CommentResponseData.builder()
+                    .username((commentsEntity.getUserAuthor() == null) ? "Anonymous" : commentsEntity.getUserAuthor().getUsername())
+                    .content(commentsEntity.getContent())
+                    .timePosted(Duration.between(commentsEntity.getCreationDate(), LocalDateTime.now()).toMinutes())
+                    .build()
+                    ).toList();
+
+           return commentResponseDataList;
+
+        }
+
+
     }
 }

@@ -17,16 +17,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity(name = "comments")
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id")
 public class CommentsEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String content;
 
-
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_author_id")
     private UsersEntity userAuthor;
@@ -37,10 +36,9 @@ public class CommentsEntity {
     @JoinColumn(name = "posts_id")
     private PostsEntity posts;
 
-
-
     @CreationTimestamp
     private LocalDateTime creationDate;
+
     @UpdateTimestamp
     private LocalDateTime updateDate;
 }

@@ -22,30 +22,26 @@ import java.util.List;
 //        generator = ObjectIdGenerators.PropertyGenerator.class,
 //        property = "id")
 public class UsersEntity {
-
-    /**
-     * Users:
-     *
-     * Entity: User
-     * Attributes: Username, Email, Password, Name, Profile Picture, etc.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false)
     private String fullname;
+
     @Column(nullable = false, unique = true)
     private String username;
+
     @Column(nullable = false, unique = true)
     @Email
     private String email;
+
     @Column(nullable = false)
     private String password;
 
-//    @JsonManagedReference
+    @JsonManagedReference
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<PostsEntity> posts;
-
 
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<CommentsEntity> comments;

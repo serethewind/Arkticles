@@ -1,11 +1,15 @@
 package com.serethewind.Arkticles.service.posts.serviceImpl;
 
+import com.serethewind.Arkticles.dto.comments.CommentResponseData;
 import com.serethewind.Arkticles.dto.posts.PostsCreationDto;
 import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
+import com.serethewind.Arkticles.entity.CommentsEntity;
 import com.serethewind.Arkticles.entity.PostsEntity;
 import com.serethewind.Arkticles.entity.UsersEntity;
+import com.serethewind.Arkticles.repository.CommentsRepository;
 import com.serethewind.Arkticles.repository.PostsRepository;
 import com.serethewind.Arkticles.repository.UserRepository;
+import com.serethewind.Arkticles.service.comments.serviceImpl.CommentsServiceImplementation;
 import com.serethewind.Arkticles.service.posts.PostsServiceInterface;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,19 +25,43 @@ import java.util.stream.Collectors;
 public class PostsServiceImplementation implements PostsServiceInterface {
     private ModelMapper modelMapper;
     private UserRepository userRepository;
-
+    private CommentsServiceImplementation commentsService;
     private PostsRepository postsRepository;
 
     @Override
     public List<PostsResponseDto> fetchAllPosts() {
         List<PostsEntity> postsList = postsRepository.findAll();
-        return postsList.stream().map(postsEntity -> modelMapper.map(postsEntity, PostsResponseDto.class)).collect(Collectors.toList());
+
+//        List<CommentResponseData> commentResponseDataList = commentsService.getCommentByPost()
+        //creating comments dto
+
+//        condition ? expression1 : expression2
+
+        return postsList.stream().map(postsEntity -> PostsResponseDto.builder()
+                        .id(postsEntity.getId())
+                        .title(postsEntity.getTitle())
+                        .content(postsEntity.getContent())
+                        .userAuthorUsername(postsEntity.getUserAuthor() == null ? null : postsEntity.getUserAuthor().getUsername())
+                        .commentResponseData(null)
+                        .build()
+                ).collect(Collectors.toList());
+
     }
 
     @Override
     public PostsResponseDto fetchPostById(Long id) {
         PostsEntity postsEntity = postsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        return modelMapper.map(postsEntity, PostsResponseDto.class);
+        List<CommentResponseData> commentResponseDataList = commentsService.getCommentByPost(id);
+
+        return PostsResponseDto.builder()
+                .id(postsEntity.getId())
+                .title(postsEntity.getTitle())
+                .content(postsEntity.getContent())
+                .userAuthorUsername(postsEntity.getUserAuthor() == null ? null : postsEntity.getUserAuthor().getUsername())
+                .commentResponseData(commentResponseDataList)
+                .build();
+
+//        return modelMapper.map(postsEntity, PostsResponseDto.class);
     }
 
     @Override
@@ -43,7 +71,7 @@ public class PostsServiceImplementation implements PostsServiceInterface {
                     .title(null)
                     .content(null)
                     .userAuthorUsername(null)
-                    .comments(null)
+                    .commentResponseData(null)
                     .build();
         }
 

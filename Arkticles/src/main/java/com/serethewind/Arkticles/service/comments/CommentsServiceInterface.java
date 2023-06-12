@@ -1,7 +1,10 @@
 package com.serethewind.Arkticles.service.comments;
 
+import com.serethewind.Arkticles.dto.comments.CommentResponseData;
 import com.serethewind.Arkticles.dto.comments.CommentsRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsResponseDto;
+
+import java.util.List;
 
 public interface CommentsServiceInterface {
     CommentsResponseDto createComment(CommentsRequestDto commentsRequestDto);
@@ -9,4 +12,6 @@ public interface CommentsServiceInterface {
     CommentsResponseDto updateComment(Long id, CommentsRequestDto commentsRequestDto);
 
     String deleteComment(Long id, CommentsRequestDto commentsRequestDto);
+
+    List<CommentResponseData> getCommentByPost(Long id);
 }
