@@ -42,7 +42,7 @@ public class PostsServiceImplementation implements PostsServiceInterface {
                         .title(postsEntity.getTitle())
                         .content(postsEntity.getContent())
                         .userAuthorUsername(postsEntity.getUserAuthor() == null ? null : postsEntity.getUserAuthor().getUsername())
-                        .commentResponseData(null)
+                        .commentResponseData(commentsService.getCommentByPost(postsEntity.getId()))
                         .build()
                 ).collect(Collectors.toList());
 
