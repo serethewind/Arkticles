@@ -5,6 +5,8 @@ import com.serethewind.Arkticles.dto.comments.CommentsRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsResponseDto;
 import com.serethewind.Arkticles.entity.CommentsEntity;
 import com.serethewind.Arkticles.entity.PostsEntity;
+import com.serethewind.Arkticles.exceptions.BadRequestException;
+import com.serethewind.Arkticles.exceptions.ResourceNotFoundException;
 import com.serethewind.Arkticles.repository.CommentsRepository;
 import com.serethewind.Arkticles.repository.PostsRepository;
 import com.serethewind.Arkticles.repository.UserRepository;
@@ -34,41 +36,29 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
     @Override
     public CommentsResponseDto createComment(CommentsRequestDto commentsRequestDto) {
-        //check if post exist
+
         if (!postsRepository.existsById(commentsRequestDto.getPostId())) {
-            return CommentsResponseDto.builder()
-                    .content(null)
-                    .postTitle(null)
-                    .build();
-            //replace with proper exception handling
+            //comment can only be created when there is a previous post. attempting to create comment without post is a bad request
+            throw new BadRequestException("Bad request. Comment is not affixed to any post");
         }
 
         if (commentsRequestDto.getUserAuthorId() != null && !userRepository.existsById(commentsRequestDto.getUserAuthorId())) {
-            return CommentsResponseDto.builder().username(null).content(null).postTitle(null).build();
+            //two conditions required to create comment. User can be null or User can be registered. If the user is not null, then the user id in the dto must be correct.
+            throw new BadRequestException("Bad request. Comment cannot be made");
         }
 
-        //        CommentsEntity createdEntity = modelMapper.map(commentsRequestDto, CommentsEntity.class);
         PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         CommentsEntity createdEntity = CommentsEntity.builder()
                 .content(commentsRequestDto.getContent())
                 .posts(posts)
+                .userAuthor(commentsRequestDto.getUserAuthorId() == null ? null : userRepository.findById(commentsRequestDto.getUserAuthorId()).orElseThrow(() -> new ResourceNotFoundException("User not found")))
                 .build();
 
-        if (commentsRequestDto.getUserAuthorId() == null) {
-            createdEntity.setUserAuthor(null);
-        } else {
-            createdEntity.setUserAuthor(userRepository.findById(commentsRequestDto.getUserAuthorId()).orElseThrow((() -> new ResponseStatusException(HttpStatus.NOT_FOUND))));
-        }
         commentsRepository.save(createdEntity);
 
         CommentsResponseDto commentsResponseDto = new CommentsResponseDto();
 
-        if (createdEntity.getUserAuthor() == null) {
-            commentsResponseDto.setUsername("Anonymous User");
-        } else {
-            commentsResponseDto.setUsername(createdEntity.getUserAuthor().getUsername());
-        }
-
+        commentsResponseDto.setUsername(createdEntity.getUserAuthor() == null ? "Anonymous User" : createdEntity.getUserAuthor().getUsername());
         commentsResponseDto.setContent(createdEntity.getContent());
         commentsResponseDto.setPostTitle(posts.getTitle());
         return commentsResponseDto;
@@ -76,31 +66,24 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
     @Override
     public CommentsResponseDto updateComment(Long id, CommentsRequestDto commentsRequestDto) {
-        //neither post nor comment exist
+
         if (!postsRepository.existsById(commentsRequestDto.getPostId()) || !commentsRepository.existsById(id)) {
-            return CommentsResponseDto.builder()
-                    .username(null)
-                    .content(null)
-                    .postTitle(null).build();
+            //neither post nor comment exist hence update is not possible. throw a bad request.
+            throw new BadRequestException("Bad request, comment not found");
         }
 
-        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
-        CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        //user making the comment is not null. so user should be registered but the user's details doesn't match the person who created the entity in the first place.
+        //only registered user who created a comment can edit a comment. an anonymous user who creates a comment cannot edit a comment.
         if (commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())) {
-            return CommentsResponseDto.builder()
-                    .username(null)
-                    .content(null)
-                    .postTitle(null).build();
+            //in this condition, the supposed user is registered however the id doesn't match the id of the user who created the comment
+            throw new BadRequestException("Update not possible");
         }
 
-        if (commentsRequestDto.getUserAuthorId() == null && entity.getUserAuthor().getId() != null) {
-            return CommentsResponseDto.builder()
-                    .username(null)
-                    .content(null)
-                    .postTitle(null).build();
+        if (commentsRequestDto.getUserAuthorId() == null) {
+            //this prevents an anonymous user from updating a comment
+            throw new BadRequestException("Bad request. Not possible");
         }
 
         entity.setContent(commentsRequestDto.getContent());
@@ -118,26 +101,26 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
 
         //user who owns the post can delete comment.
         //if the person who made the comment is registered, he can delete the comment
+        //if the person who made the comment is anonymous, his comment can be deleted by the owner of the post
         if (!commentsRepository.existsById(id)) {
-            return "Delete operation not successful. Comment does not exist";
+            throw new ResourceNotFoundException("Comment not found");
         }
 
-        CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
         //user is not null. so there is an id, but the id doesn't match the person who created the comment in the first instance.
         if (commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())) {
-            return "Only user who made post can delete. Delete not successful";
+            throw new BadRequestException("Only registered users can create and delete comment");
         }
 
         //if the creator of the post or the creator of the comment
         if (userRepository.existsById(entity.getPosts().getUserAuthor().getId()) || userRepository.existsById(entity.getUserAuthor().getId())) {
             commentsRepository.delete(entity);
             return "Delete operation successful";
-
         }
 
-        return "Only registered user who made post can delete. Delete not successful";
+throw new BadRequestException("Only registered user or owner of a post can delete a comment");
     }
 
     @Override
@@ -149,14 +132,14 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
             List<CommentsEntity> commentsEntityList = commentsRepository.findCommentByPostID(id);
 
 
-           List<CommentResponseData> commentResponseDataList = commentsEntityList.stream().map(commentsEntity -> CommentResponseData.builder()
+            List<CommentResponseData> commentResponseDataList = commentsEntityList.stream().map(commentsEntity -> CommentResponseData.builder()
                     .username((commentsEntity.getUserAuthor() == null) ? "Anonymous" : commentsEntity.getUserAuthor().getUsername())
                     .content(commentsEntity.getContent())
                     .timePosted(Duration.between(commentsEntity.getCreationDate(), LocalDateTime.now()).toHours() + " hours ago")
                     .build()
-                    ).toList();
+            ).toList();
 
-           return commentResponseDataList;
+            return commentResponseDataList;
 
         }
 
