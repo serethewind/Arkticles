@@ -3,6 +3,8 @@ package com.serethewind.Arkticles.service.users.serviceImpl;
 import com.serethewind.Arkticles.dto.users.UserRequestDto;
 import com.serethewind.Arkticles.dto.users.UserResponseDto;
 import com.serethewind.Arkticles.entity.UsersEntity;
+import com.serethewind.Arkticles.exceptions.BadRequestException;
+import com.serethewind.Arkticles.exceptions.ResourceNotFoundException;
 import com.serethewind.Arkticles.repository.UserRepository;
 import com.serethewind.Arkticles.service.users.UsersServiceInterface;
 import lombok.AllArgsConstructor;
@@ -29,7 +31,7 @@ public class UsersServiceImpl implements UsersServiceInterface {
 
     @Override
     public UserResponseDto viewSingleUser(Long id) {
-        UsersEntity user = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        UsersEntity user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return modelMapper.map(user, UserResponseDto.class);
     }
 
@@ -42,10 +44,10 @@ public class UsersServiceImpl implements UsersServiceInterface {
     @Override
     public UserResponseDto updateUserInformation(Long id, UserRequestDto userRequestDto) {
         if (!userRepository.existsById(id)){
-            return UserResponseDto.builder().fullname(null).username(null).build();
+            throw new ResourceNotFoundException("User not found");
         }
 
-        UsersEntity foundUser = userRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        UsersEntity foundUser = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         modelMapper.map(userRequestDto, foundUser);
         userRepository.save(foundUser);
         return modelMapper.map(foundUser, UserResponseDto.class);
@@ -54,7 +56,7 @@ public class UsersServiceImpl implements UsersServiceInterface {
     @Override
     public String deleteUser(Long id) {
         if (!userRepository.existsById(id)){
-            return "User not found. Delete not carried out";
+            throw new BadRequestException("User not found. Delete option failed");
         }
 
         userRepository.deleteById(id);
