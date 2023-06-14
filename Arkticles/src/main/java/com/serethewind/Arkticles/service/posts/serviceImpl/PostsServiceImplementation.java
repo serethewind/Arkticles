@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,12 +89,17 @@ public class PostsServiceImplementation implements PostsServiceInterface {
 
         if (!userRepository.existsById(postsCreationDto.getUserAuthorId()) || !postsRepository.existsById(id)) {
             //user doesn't exist, post doesn't exist, so update cannot be done. no need to specify whether the issue is with the wrong user id or the wrong post id
-            throw new BadRequestException("Bad request");
+            throw new BadRequestException("Bad request. Unrecognized user");
         }
-
 
         UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         PostsEntity foundPost = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+       if  (!Objects.equals(foundPost.getUserAuthor().getId(), postsCreationDto.getUserAuthorId())) {
+           //only user who created the post has the right to update the post
+           throw new BadRequestException("Only creator of post can update post");
+       }
+
         foundPost.setTitle(postsCreationDto.getTitle());
         foundPost.setContent(postsCreationDto.getContent());
         foundPost.setUserAuthor(foundPost.getUserAuthor());
@@ -104,12 +110,15 @@ public class PostsServiceImplementation implements PostsServiceInterface {
     }
 
     @Override
-    public String deletePost(Long id) {
-        if (!postsRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Post to be deleted not found");
-//            return "Delete operation unsuccessful. Post to be deleted doesn't exist";
+    public String deletePost(Long id, Long userAuthorId) {
+
+
+        PostsEntity post = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+        if (post.getUserAuthor().getId() != userAuthorId){
+            throw new BadRequestException("Only creator of the post can delete it");
         }
-        postsRepository.deleteById(id);
-        return "Post deleted";
+        postsRepository.delete(post);
+        return "Post deleted successfully";
     }
 }

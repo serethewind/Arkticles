@@ -13,6 +13,6 @@ public interface PostsServiceInterface {
     PostsResponseDto createNewPost(PostsCreationDto postsCreationDto);
     PostsResponseDto updatePostById(Long id, PostsCreationDto postsCreationDto);
 
-    String deletePost(Long id);
+    String deletePost(Long postId, Long userAuthorId);
 
 }
