@@ -6,6 +6,8 @@ import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
 import com.serethewind.Arkticles.entity.CommentsEntity;
 import com.serethewind.Arkticles.entity.PostsEntity;
 import com.serethewind.Arkticles.entity.UsersEntity;
+import com.serethewind.Arkticles.exceptions.BadRequestException;
+import com.serethewind.Arkticles.exceptions.ResourceNotFoundException;
 import com.serethewind.Arkticles.repository.CommentsRepository;
 import com.serethewind.Arkticles.repository.PostsRepository;
 import com.serethewind.Arkticles.repository.UserRepository;
@@ -31,26 +33,19 @@ public class PostsServiceImplementation implements PostsServiceInterface {
     @Override
     public List<PostsResponseDto> fetchAllPosts() {
         List<PostsEntity> postsList = postsRepository.findAll();
-
-//        List<CommentResponseData> commentResponseDataList = commentsService.getCommentByPost()
-        //creating comments dto
-
-//        condition ? expression1 : expression2
-
         return postsList.stream().map(postsEntity -> PostsResponseDto.builder()
-                        .id(postsEntity.getId())
-                        .title(postsEntity.getTitle())
-                        .content(postsEntity.getContent())
-                        .userAuthorUsername(postsEntity.getUserAuthor() == null ? null : postsEntity.getUserAuthor().getUsername())
-                        .commentResponseData(commentsService.getCommentByPost(postsEntity.getId()))
-                        .build()
-                ).collect(Collectors.toList());
-
+                .id(postsEntity.getId())
+                .title(postsEntity.getTitle())
+                .content(postsEntity.getContent())
+                .userAuthorUsername(postsEntity.getUserAuthor() == null ? null : postsEntity.getUserAuthor().getUsername())
+                .commentResponseData(commentsService.getCommentByPost(postsEntity.getId()))
+                .build()
+        ).collect(Collectors.toList());
     }
 
     @Override
     public PostsResponseDto fetchPostById(Long id) {
-        PostsEntity postsEntity = postsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        PostsEntity postsEntity = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
         List<CommentResponseData> commentResponseDataList = commentsService.getCommentByPost(id);
 
         return PostsResponseDto.builder()
@@ -61,22 +56,21 @@ public class PostsServiceImplementation implements PostsServiceInterface {
                 .commentResponseData(commentResponseDataList)
                 .build();
 
-//        return modelMapper.map(postsEntity, PostsResponseDto.class);
     }
 
     @Override
     public PostsResponseDto createNewPost(PostsCreationDto postsCreationDto) {
-        if (!userRepository.existsById(postsCreationDto.getUserAuthorId())){
-            return PostsResponseDto.builder()
-                    .title(null)
-                    .content(null)
-                    .userAuthorUsername(null)
-                    .commentResponseData(null)
-                    .build();
+        if (!userRepository.existsById(postsCreationDto.getUserAuthorId())) {
+//            return PostsResponseDto.builder()
+//                    .title(null)
+//                    .content(null)
+//                    .userAuthorUsername(null)
+//                    .commentResponseData(null)
+//                    .build();
+            throw new ResourceNotFoundException("User not found");
         }
 
-        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-//        PostsEntity postCreated = modelMapper.map(postsCreationDto, PostsEntity.class);
+        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         PostsEntity postCreated = PostsEntity.builder()
                 .title(postsCreationDto.getTitle())
@@ -91,16 +85,15 @@ public class PostsServiceImplementation implements PostsServiceInterface {
 
     @Override
     public PostsResponseDto updatePostById(Long id, PostsCreationDto postsCreationDto) {
-        if (!userRepository.existsById(postsCreationDto.getUserAuthorId()) || !postsRepository.existsById(id)){
-            return PostsResponseDto.builder()
-                    .title(null)
-                    .content(null)
-                    .build();
+
+        if (!userRepository.existsById(postsCreationDto.getUserAuthorId()) || !postsRepository.existsById(id)) {
+            //user doesn't exist, post doesn't exist, so update cannot be done. no need to specify whether the issue is with the wrong user id or the wrong post id
+            throw new BadRequestException("Bad request");
         }
 
 
-        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        PostsEntity foundPost = postsRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        UsersEntity user = userRepository.findById(postsCreationDto.getUserAuthorId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        PostsEntity foundPost = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
         foundPost.setTitle(postsCreationDto.getTitle());
         foundPost.setContent(postsCreationDto.getContent());
         foundPost.setUserAuthor(foundPost.getUserAuthor());
@@ -112,8 +105,9 @@ public class PostsServiceImplementation implements PostsServiceInterface {
 
     @Override
     public String deletePost(Long id) {
-        if (!postsRepository.existsById(id)){
-            return "Delete operation unsuccessful. Post to be deleted doesn't exist";
+        if (!postsRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Post to be deleted not found");
+//            return "Delete operation unsuccessful. Post to be deleted doesn't exist";
         }
         postsRepository.deleteById(id);
         return "Post deleted";
