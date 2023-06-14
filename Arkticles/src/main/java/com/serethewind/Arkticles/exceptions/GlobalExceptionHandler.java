@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorDetailsClass> handlerResourceNotFoundException(ResourceNotFoundException ex, WebRequest webRequest){
+    public ResponseEntity<ErrorDetailsClass> handlerResourceNotFoundException(ResourceNotFoundException ex, WebRequest webRequest) {
 
         ErrorDetailsClass errorDetailsClass = ErrorDetailsClass.builder()
                 .timestamp(LocalDateTime.now())
@@ -24,8 +24,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetailsClass, HttpStatus.NOT_FOUND);
 
     }
+
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorDetailsClass> handlerBadRequestException(BadRequestException e, WebRequest webRequest){
+    public ResponseEntity<ErrorDetailsClass> handlerBadRequestException(BadRequestException e, WebRequest webRequest) {
 
         ErrorDetailsClass errorDetailsClass = ErrorDetailsClass.builder()
                 .timestamp(LocalDateTime.now())
@@ -37,5 +38,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDetailsClass, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDetailsClass> handlerGlobalException(Exception e, WebRequest webRequest) {
+
+        ErrorDetailsClass errorDetailsClass = ErrorDetailsClass.builder()
+                .timestamp(LocalDateTime.now())
+                .message(e.getMessage())
+                .path(webRequest.getDescription(false))
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .build();
+
+        return new ResponseEntity<>(errorDetailsClass, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 }
