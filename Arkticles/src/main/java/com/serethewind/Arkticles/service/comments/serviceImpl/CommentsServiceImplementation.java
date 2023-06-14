@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.service.comments.serviceImpl;
 
+import com.serethewind.Arkticles.dto.comments.CommentDeleteRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentResponseData;
 import com.serethewind.Arkticles.dto.comments.CommentsRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsResponseDto;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -97,31 +99,35 @@ public class CommentsServiceImplementation implements CommentsServiceInterface {
     }
 
     @Override
-    public String deleteComment(Long id, CommentsRequestDto commentsRequestDto) {
+    public String deleteComment(Long commentId, CommentDeleteRequestDto commentDeleteRequestDto, Long userAuthorId) {
 
         //user who owns the post can delete comment.
         //if the person who made the comment is registered, he can delete the comment
         //if the person who made the comment is anonymous, his comment can be deleted by the owner of the post
-        if (!commentsRepository.existsById(id)) {
+        if (!commentsRepository.existsById(commentId)) {
             throw new ResourceNotFoundException("Comment not found");
         }
 
-        CommentsEntity entity = commentsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
-        PostsEntity posts = postsRepository.findById(commentsRequestDto.getPostId()).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        CommentsEntity entity = commentsRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+        PostsEntity posts = postsRepository.findById(entity.getPosts().getId()).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        //user is not null. so there is an id, but the id doesn't match the person who created the comment in the first instance.
-        if (commentsRequestDto.getUserAuthorId() != null && !commentsRequestDto.getUserAuthorId().equals(entity.getUserAuthor().getId())) {
-            throw new BadRequestException("Only registered users can create and delete comment");
-        }
-
-        //if the creator of the post or the creator of the comment
-        if (userRepository.existsById(entity.getPosts().getUserAuthor().getId()) || userRepository.existsById(entity.getUserAuthor().getId())) {
+        if (Objects.equals(entity.getUserAuthor().getId(), commentDeleteRequestDto.getUserAuthorId())) {
             commentsRepository.delete(entity);
-            return "Delete operation successful";
+            return "Delete successful";
         }
 
-throw new BadRequestException("Only registered user or owner of a post can delete a comment");
+        if(commentDeleteRequestDto.getUserAuthorId() == null && Objects.equals(posts.getUserAuthor().getId(), userAuthorId)){
+            commentsRepository.delete(entity);
+            return "Delete successful";
+        }
+
+        if (commentDeleteRequestDto.getUserAuthorId() == null) {
+            throw new BadRequestException("Anonymous user cannot delete comment");
+        }
+
+        throw new BadRequestException("Delete unsuccessful");
     }
+
 
     @Override
     public List<CommentResponseData> getCommentByPost(Long id) {

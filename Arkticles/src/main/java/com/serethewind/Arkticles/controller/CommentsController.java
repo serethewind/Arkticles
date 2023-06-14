@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.controller;
 
+import com.serethewind.Arkticles.dto.comments.CommentDeleteRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsRequestDto;
 import com.serethewind.Arkticles.dto.comments.CommentsResponseDto;
 import com.serethewind.Arkticles.service.comments.serviceImpl.CommentsServiceImplementation;
@@ -26,7 +27,7 @@ public class CommentsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable("id") Long id, @RequestBody CommentsRequestDto commentsRequestDto){
-        return ResponseEntity.ok(commentsService.deleteComment(id, commentsRequestDto));
+    public ResponseEntity<String> deleteComment(@PathVariable("id") Long id, @RequestBody CommentDeleteRequestDto commentDeleteRequestDto, @RequestParam(value = "postUserId", required = false) Long userAuthorId){
+        return ResponseEntity.ok(commentsService.deleteComment(id, commentDeleteRequestDto, userAuthorId));
     }
 }

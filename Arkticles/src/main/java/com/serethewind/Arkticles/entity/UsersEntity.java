@@ -10,7 +10,9 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -45,6 +47,9 @@ public class UsersEntity {
 
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<CommentsEntity> comments;
+
+    @ManyToMany
+    private Set<RolesEntity> roles = new HashSet<>();
 
     @CreationTimestamp
     private LocalDateTime dateRegistered;
