@@ -41,9 +41,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> {
-                    authorize.requestMatchers(HttpMethod.POST, "/api/arkticles/v1/users").permitAll();
+                    authorize.requestMatchers(HttpMethod.POST, "/api/arkticles/v1/auth/**").permitAll();
                     authorize.requestMatchers(HttpMethod.GET, "/api/arkticles/v1/users/home").permitAll();
-                    authorize.requestMatchers("/api/arkticles/v1/posts").hasAuthority("ADMIN");
+                    authorize.requestMatchers("/api/arkticles/v1/users/**").hasAuthority("ADMIN");
                     authorize.requestMatchers("/api/arkticles/v1/posts/**").hasAnyAuthority("ADMIN", "USER");
                     authorize.anyRequest().authenticated();
                 }).httpBasic(Customizer.withDefaults());

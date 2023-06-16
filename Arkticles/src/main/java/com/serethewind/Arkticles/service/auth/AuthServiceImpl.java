@@ -52,7 +52,6 @@ public class AuthServiceImpl implements AuthServiceInterface {
         //get authentication object from the
         //get context from security context holder and set the authentication object with the authentication object gotten from the authentication manager.
         //return string login successful
-
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginRequestDto.getUsername(), userLoginRequestDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         return "User login successfully";
