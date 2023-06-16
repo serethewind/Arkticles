@@ -5,6 +5,7 @@ import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
 import com.serethewind.Arkticles.service.posts.serviceImpl.PostsServiceImplementation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

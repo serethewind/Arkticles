@@ -1,6 +1,6 @@
 package com.serethewind.Arkticles.controller;
 
-import com.serethewind.Arkticles.dto.users.UserRequestDto;
+import com.serethewind.Arkticles.dto.users.UserRegisterRequestDto;
 import com.serethewind.Arkticles.dto.users.UserResponseDto;
 import com.serethewind.Arkticles.service.users.serviceImpl.UsersServiceImpl;
 import lombok.AllArgsConstructor;
@@ -21,19 +21,24 @@ public class UsersController {
         return ResponseEntity.ok(usersService.viewAllUsers());
     }
 
+    @GetMapping("/home")
+    public String homepage(){
+        return "Welcome to the homepage. for login and register route, click the button below";
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getSingleUser(@PathVariable("id") Long userId){
         return ResponseEntity.ok(usersService.viewSingleUser(userId));
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRequestDto userRequestDto){
-        return ResponseEntity.ok(usersService.createUser(userRequestDto));
+    public ResponseEntity<UserResponseDto> createUser(@RequestBody UserRegisterRequestDto userRegisterRequestDto){
+        return ResponseEntity.ok(usersService.createUser(userRegisterRequestDto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDto> updateUserDetails(@PathVariable("id") Long id, @RequestBody UserRequestDto userRequestDto){
-        return ResponseEntity.ok(usersService.updateUserInformation(id, userRequestDto));
+    public ResponseEntity<UserResponseDto> updateUserDetails(@PathVariable("id") Long id, @RequestBody UserRegisterRequestDto userRegisterRequestDto){
+        return ResponseEntity.ok(usersService.updateUserInformation(id, userRegisterRequestDto));
     }
 
     @DeleteMapping("/{id}")

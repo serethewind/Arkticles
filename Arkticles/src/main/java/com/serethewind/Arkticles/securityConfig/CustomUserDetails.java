@@ -2,10 +2,12 @@ package com.serethewind.Arkticles.securityConfig;
 
 import com.serethewind.Arkticles.entity.UsersEntity;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -16,7 +18,7 @@ public class CustomUserDetails implements UserDetails {
     CustomUserDetails(UsersEntity user){
         this.name = user.getUsername();
         this.password = user.getPassword();
-//        this.grantedAuthorities
+        this.grantedAuthorities = user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toSet());
     }
 
     @Override

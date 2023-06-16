@@ -1,6 +1,6 @@
 package com.serethewind.Arkticles.service.users.serviceImpl;
 
-import com.serethewind.Arkticles.dto.users.UserRequestDto;
+import com.serethewind.Arkticles.dto.users.UserRegisterRequestDto;
 import com.serethewind.Arkticles.dto.users.UserResponseDto;
 import com.serethewind.Arkticles.entity.UsersEntity;
 import com.serethewind.Arkticles.exceptions.BadRequestException;
@@ -9,9 +9,7 @@ import com.serethewind.Arkticles.repository.UserRepository;
 import com.serethewind.Arkticles.service.users.UsersServiceInterface;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,8 +21,8 @@ public class UsersServiceImpl implements UsersServiceInterface {
     private ModelMapper modelMapper;
 
     @Override
-    public UserResponseDto createUser(UserRequestDto userRequestDto) {
-        UsersEntity user = modelMapper.map(userRequestDto, UsersEntity.class);
+    public UserResponseDto createUser(UserRegisterRequestDto userRegisterRequestDto) {
+        UsersEntity user = modelMapper.map(userRegisterRequestDto, UsersEntity.class);
         userRepository.save(user);
         return modelMapper.map(user, UserResponseDto.class);
     }
@@ -42,13 +40,13 @@ public class UsersServiceImpl implements UsersServiceInterface {
     }
 
     @Override
-    public UserResponseDto updateUserInformation(Long id, UserRequestDto userRequestDto) {
+    public UserResponseDto updateUserInformation(Long id, UserRegisterRequestDto userRegisterRequestDto) {
         if (!userRepository.existsById(id)){
             throw new ResourceNotFoundException("User not found");
         }
 
         UsersEntity foundUser = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        modelMapper.map(userRequestDto, foundUser);
+        modelMapper.map(userRegisterRequestDto, foundUser);
         userRepository.save(foundUser);
         return modelMapper.map(foundUser, UserResponseDto.class);
     }
