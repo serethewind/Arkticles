@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.controller;
 
+import com.serethewind.Arkticles.dto.users.UserLoginRequestDto;
 import com.serethewind.Arkticles.dto.users.UserRegisterRequestDto;
 import com.serethewind.Arkticles.service.auth.AuthServiceImpl;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,10 @@ public class AuthController {
     @PostMapping()
     public ResponseEntity<String> register(UserRegisterRequestDto userRegisterRequestDto){
         return new ResponseEntity<>(authService.registerUser(userRegisterRequestDto), HttpStatus.CREATED);
+    }
+
+    public ResponseEntity<String> login(UserLoginRequestDto userLoginRequestDto){
+        return new ResponseEntity<>(authService.loginUser(userLoginRequestDto), HttpStatus.OK);
     }
 
 }
