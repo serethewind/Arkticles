@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.service.auth;
 
+import com.serethewind.Arkticles.dto.AuthResponseDto;
 import com.serethewind.Arkticles.dto.users.UserLoginRequestDto;
 import com.serethewind.Arkticles.dto.users.UserRegisterRequestDto;
 import com.serethewind.Arkticles.entity.RolesEntity;
@@ -7,6 +8,7 @@ import com.serethewind.Arkticles.entity.UsersEntity;
 import com.serethewind.Arkticles.exceptions.BadRequestException;
 import com.serethewind.Arkticles.repository.RolesRepository;
 import com.serethewind.Arkticles.repository.UserRepository;
+import com.serethewind.Arkticles.securityConfig.JWTService;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,7 @@ public class AuthServiceImpl implements AuthServiceInterface {
     private RolesRepository rolesRepository;
     private AuthenticationManager authenticationManager;
     private PasswordEncoder passwordEncoder;
+    private JWTService jwtService;
 
     @Override
     public String registerUser(UserRegisterRequestDto userRegisterRequestDto) {
@@ -43,18 +46,20 @@ public class AuthServiceImpl implements AuthServiceInterface {
                     .build();
 
             userRepository.save(user);
+            String jwtToken = jwtService.generateToken(user.getUsername());
             return "User successfully registered";
         }
     }
 
     @Override
-    public String loginUser(UserLoginRequestDto userLoginRequestDto) {
+    public AuthResponseDto loginUser(UserLoginRequestDto userLoginRequestDto) {
         //get authentication object from the
         //get context from security context holder and set the authentication object with the authentication object gotten from the authentication manager.
         //return string login successful
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userLoginRequestDto.getUsername(), userLoginRequestDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return "User login successfully";
+        String token = jwtService.generateToken(authentication.getName());
+        return new AuthResponseDto(token);
     }
 }
 

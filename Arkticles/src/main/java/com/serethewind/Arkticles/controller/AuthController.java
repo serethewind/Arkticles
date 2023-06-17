@@ -1,5 +1,6 @@
 package com.serethewind.Arkticles.controller;
 
+import com.serethewind.Arkticles.dto.AuthResponseDto;
 import com.serethewind.Arkticles.dto.users.UserLoginRequestDto;
 import com.serethewind.Arkticles.dto.users.UserRegisterRequestDto;
 import com.serethewind.Arkticles.service.auth.AuthServiceImpl;
@@ -25,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequestDto userLoginRequestDto){
+    public ResponseEntity<AuthResponseDto> login(@RequestBody UserLoginRequestDto userLoginRequestDto){
         return new ResponseEntity<>(authService.loginUser(userLoginRequestDto), HttpStatus.OK);
     }
 
