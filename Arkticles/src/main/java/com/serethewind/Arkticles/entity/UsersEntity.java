@@ -42,6 +42,9 @@ public class UsersEntity {
     @Column(nullable = false)
     private String password;
 
+    @OneToMany(mappedBy = "user")
+    private List<TokenEntity> tokens;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)
     private List<PostsEntity> posts;
