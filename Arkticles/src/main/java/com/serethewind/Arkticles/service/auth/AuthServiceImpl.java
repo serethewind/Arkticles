@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -64,6 +65,7 @@ public class AuthServiceImpl implements AuthServiceInterface {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtService.generateToken(authentication.getName());
         UsersEntity user = userRepository.findUserByUsername(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("user not found"));
+        revokeValidTokens(user);
         TokenEntity tokenEntity = TokenEntity.builder()
                 .user(user)
                 .token(token)
@@ -74,6 +76,18 @@ public class AuthServiceImpl implements AuthServiceInterface {
         tokenRepository.save(tokenEntity);
 
         return new AuthResponseDto(token);
+    }
+
+
+    private void revokeValidTokens(UsersEntity users) {
+        List<TokenEntity> tokenEntityList = tokenRepository.findAllValidTokensByUser(users.getId());
+        if (tokenEntityList.isEmpty())
+            return;
+        tokenEntityList.forEach(t -> {
+            t.setRevoked(true);
+            t.setExpired(true);
+        });
+        tokenRepository.saveAll(tokenEntityList);
     }
 }
 
