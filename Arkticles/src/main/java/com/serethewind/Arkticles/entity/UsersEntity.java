@@ -43,7 +43,7 @@ public class UsersEntity {
     private String password;
 
     @OneToMany(mappedBy = "user")
-    private List<TokenEntity> tokens;
+    private List<TokenEntity> tokens = new ArrayList<>();
 
     @JsonManagedReference
     @OneToMany(mappedBy = "userAuthor", cascade = CascadeType.ALL)

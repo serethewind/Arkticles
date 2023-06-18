@@ -6,9 +6,9 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Entity(name = "_tokens")
+@AllArgsConstructor
 public class TokenEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
