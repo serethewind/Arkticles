@@ -1,16 +1,17 @@
 package com.serethewind.Arkticles.controller;
 
-import com.serethewind.Arkticles.dto.PostsCreationDto;
-import com.serethewind.Arkticles.dto.PostsResponseDto;
-import com.serethewind.Arkticles.service.serviceImpl.PostsServiceImplementation;
+import com.serethewind.Arkticles.dto.posts.PostsCreationDto;
+import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
+import com.serethewind.Arkticles.service.posts.serviceImpl.PostsServiceImplementation;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/arkticles/v1")
+@RequestMapping("/api/arkticles/v1/posts")
 @AllArgsConstructor
 public class PostsController {
 
@@ -37,7 +38,7 @@ public class PostsController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteSinglePost(@PathVariable("id") Long id){
-        return ResponseEntity.ok(postsService.deletePost(id));
+    public ResponseEntity<String> deleteSinglePost(@PathVariable("id") Long id, @RequestParam("userId")Long userAuthorId){
+        return ResponseEntity.ok(postsService.deletePost(id, userAuthorId));
     }
 }

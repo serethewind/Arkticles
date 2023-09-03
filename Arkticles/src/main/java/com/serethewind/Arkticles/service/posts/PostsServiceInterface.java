@@ -1,8 +1,8 @@
-package com.serethewind.Arkticles.service;
+package com.serethewind.Arkticles.service.posts;
 
 
-import com.serethewind.Arkticles.dto.PostsCreationDto;
-import com.serethewind.Arkticles.dto.PostsResponseDto;
+import com.serethewind.Arkticles.dto.posts.PostsCreationDto;
+import com.serethewind.Arkticles.dto.posts.PostsResponseDto;
 
 import java.util.List;
 
@@ -13,6 +13,6 @@ public interface PostsServiceInterface {
     PostsResponseDto createNewPost(PostsCreationDto postsCreationDto);
     PostsResponseDto updatePostById(Long id, PostsCreationDto postsCreationDto);
 
-    String deletePost(Long id);
+    String deletePost(Long postId, Long userAuthorId);
 
 }

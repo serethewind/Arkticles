@@ -1,51 +1,44 @@
 package com.serethewind.Arkticles.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@Entity(name = "posts")
-public class PostsEntity {
+@Entity(name = "comments")
+public class CommentsEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    @Size(min = 1, max = 100)
-    private String title;
-
     @Column(nullable = false)
-    @Size(min = 1)
     private String content;
 
     @JsonBackReference
-//    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_author_id")
     private UsersEntity userAuthor;
 
-    @JsonManagedReference
-    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CommentsEntity> comments = new ArrayList<>();
+//    @JsonBackReference
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "posts_id")
+    private PostsEntity posts;
 
     @CreationTimestamp
     private LocalDateTime creationDate;
+
     @UpdateTimestamp
-    private LocalDateTime lastUpdated;
-    // private set of Tag tags;
+    private LocalDateTime updateDate;
 }

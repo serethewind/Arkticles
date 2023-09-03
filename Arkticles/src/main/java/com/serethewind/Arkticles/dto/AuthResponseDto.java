@@ -6,10 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class PostsCreationDto {
-    private String title;
-    private String content;
+@NoArgsConstructor
+@Builder
+public class AuthResponseDto {
+
+    private String token;
 }
